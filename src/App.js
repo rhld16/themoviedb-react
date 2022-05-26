@@ -226,9 +226,10 @@ function App() {
                     </Toolbar>
                 </AppBar>
             </Box>
+            <Container style={{ padding: '24px', minHeight: 50 }}>
+                <SearchBox searchHandler={searchHandler} />
+            </Container>
             <Container style={{ padding: '24px', minHeight: 280 }}>
-                    <SearchBox searchHandler={searchHandler} />
-
                     <Grid container>
                             { loading &&
                                 <Loader />
