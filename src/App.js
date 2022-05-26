@@ -1,41 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import { 
-    Layout, 
-    Input, 
     Row, 
     Col, 
     Card, 
     Tag, 
     Spin, 
-    Alert, 
-    Modal, 
-    Typography 
+    Modal,
+    Alert
 } from 'antd';
 import 'antd/dist/antd.css';
+import { 
+    AppBar, 
+    Box, 
+    CardActionArea, 
+    CardContent, 
+    CardMedia, 
+    Chip, 
+    Container, 
+    Grid, 
+    TextField, 
+    Toolbar, 
+    Typography 
+} from '@mui/material';
 
-const API_KEY = 'ce762116';
-const { Header, Content, Footer } = Layout;
-const { Search } = Input;
-const { Meta } = Card;
-const TextTitle = Typography.Title;
-
+const API_KEY = '3d58b9ecc0aeb1a323777996ebd2572b';
 
 const SearchBox = ({searchHandler}) => {
     return (
-        <Row>
-            <Col span={12} offset={6}>
-                <Search
-                    placeholder="enter movie, series, episode name"
-                    enterButton="Search"
-                    size="large"
-                    onSearch={value => searchHandler(value)}
+        <Grid
+            container
+            spacing={0}
+            direction="column"
+            alignItems="center"
+            justifyContent="center"
+        >
+
+            <Grid item xs={3}>
+                <TextField
+                    id="movie-name"
+                    label="Movie Name"
+                    onChange={(e) => searchHandler(e.target.value)}
+                    style={{ minWidth: '100vh' }}
                 />
-            </Col>
-        </Row>
+            </Grid>
+        </Grid>
     )
 }
 
-const ColCardBox = ({Title, imdbID, Poster, Type, ShowDetail, DetailRequest, ActivateModal}) => {
+const ColCardBox = ({name, id, poster_path, vote_average, year, ShowDetail, DetailRequest, ActivateModal}) => {
 
     const clickHandler = () => {
 
@@ -43,12 +55,15 @@ const ColCardBox = ({Title, imdbID, Poster, Type, ShowDetail, DetailRequest, Act
         ActivateModal(true);
         DetailRequest(true);
 
-        fetch(`http://www.omdbapi.com/?i=${imdbID}&apikey=${API_KEY}`)
+        fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}`)
         .then(resp => resp)
         .then(resp => resp.json())
         .then(response => {
-            DetailRequest(false);
-            ShowDetail(response);
+            console.log(response)
+            if (response != null) {
+                ShowDetail(response);
+                DetailRequest(false);
+            }
         })
         .catch(({message}) => {
             DetailRequest(false);
@@ -56,59 +71,72 @@ const ColCardBox = ({Title, imdbID, Poster, Type, ShowDetail, DetailRequest, Act
     }
 
     return (
-        <Col style={{margin: '20px 0'}} className="gutter-row" span={4}>
-            <div className="gutter-box">
-                <Card
-                    style={{ width: 200 }}
-                    cover={
-                        <img
-                            alt={Title}
-                            src={Poster === 'N/A' ? 'https://placehold.it/198x264&text=Image+Not+Found' : Poster}
-                        />
-                    }
-                    onClick={() => clickHandler()}
-                >
-                    <Meta
-                            title={Title}
-                            description={false}
+        <Grid item xs={12} sm={4} md={3} lg={2}>
+            <Card>
+                <CardActionArea onClick={clickHandler}>
+                    <CardMedia
+                        component="img"
+                        height="300"
+                        image={poster_path === null ? 'https://placehold.it/300x450&text=Image+Not+Found' : "https://image.tmdb.org/t/p/w300" + poster_path}
+                        alt={name}
                     />
-                    <Row style={{marginTop: '10px'}} className="gutter-row">
-                        <Col>
-                            <Tag color="magenta">{Type}</Tag>
-                        </Col>
-                    </Row>
-                </Card>
-            </div>
-        </Col>
+                    <CardContent>
+                        <Typography gutterBottom variant="h5" component="h2">
+                            {name}
+                            <Chip label={vote_average} size="small" style={{marginLeft: '10px'}} />
+                        </Typography>
+                    </CardContent>
+                </CardActionArea>
+            </Card>
+        </Grid>
     )
 }
 
-const MovieDetail = ({Title, Poster, imdbRating, Rated, Runtime, Genre, Plot}) => {
+const MovieDetail = ({title, poster_path, vote_average, runtime, genres, overview}) => {
+    if (genres != null) {
+        genres = genres.map(genre => genre.name).join(', ');
+    }
     return (
+        // <Grid container spacing={2} columns={16}>
+        //     <Grid item xs={8}>
+        //         <img src={poster_path === null ? 'https://placehold.it/300x450&text=Image+Not+Found' : "https://image.tmdb.org/t/p/w300" + poster_path} alt={title} style={{width: '100%'}} />
+        //     </Grid>
+        //     <Grid item xs={8}>
+        //         {/* movie title with score on right side */}
+        //         <Typography variant="h5" gutterBottom>
+        //             {title}
+        //             <Chip label={vote_average} size="small" style={{marginLeft: '10px'}} />
+        //         </Typography>
+        //     </Grid>
+        // </Grid>
         <Row>
             <Col span={11}>
                 <img 
-                    src={Poster === 'N/A' ? 'https://placehold.it/198x264&text=Image+Not+Found' : Poster} 
-                    alt={Title} 
+                    src={poster_path === 'N/A' ? 'https://placehold.it/198x264&text=Image+Not+Found' : "https://image.tmdb.org/t/p/w300" + poster_path} 
+                    alt={title} 
                 />
             </Col>
             <Col span={13}>
                 <Row>
                     <Col span={21}>
-                        <TextTitle level={4}>{Title}</TextTitle></Col>
+                        <Typography variant="h5" component="h2">
+                            {title}
+                        </Typography>
+                    </Col>
                     <Col span={3} style={{textAlign:'right'}}>
-                        <TextTitle level={4}><span style={{color: '#41A8F8'}}>{imdbRating}</span></TextTitle>
+                        <Typography gutterBottom variant="h5" component="h2">
+                            {vote_average}
+                        </Typography>
                     </Col>
                 </Row>
                 <Row style={{marginBottom: '20px'}}>
                     <Col>
-                        <Tag>{Rated}</Tag> 
-                        <Tag>{Runtime}</Tag> 
-                        <Tag>{Genre}</Tag>
+                        <Tag>{runtime}</Tag> 
+                        <Tag>{genres}</Tag>
                     </Col>
                 </Row>
                 <Row>
-                    <Col>{Plot}</Col>
+                    <Col>{overview}</Col>
                 </Row>
             </Col>
         </Row>
@@ -126,11 +154,33 @@ function App() {
     const [data, setData] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [q, setQuery] = useState('batman');
+    const [query, setQuery] = useState(null);
     const [activateModal, setActivateModal] = useState(false);
     const [detail, setShowDetail] = useState(false);
     const [detailRequest, setDetailRequest] = useState(false);
 
+    // debounce setQuery to prevent multiple request after 1 second
+    const debounce = (func, delay) => {
+        let inDebounce;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(inDebounce);
+            inDebounce = setTimeout(() => func.apply(context, args), delay);
+        }
+    }
+
+    const initData = () => {
+        fetch('https://rhld16.duckdns.org/sssf/movies')
+        .then(resp => resp.json())
+        .then(response => {
+            setData(response);
+        });
+    }
+
+    const searchHandler = debounce((query) => {
+        setQuery(query);
+    }, 1000);
 
     useEffect(() => {
 
@@ -138,41 +188,48 @@ function App() {
         setError(null);
         setData(null);
 
-        fetch(`http://www.omdbapi.com/?s=${q}&apikey=${API_KEY}`)
-        .then(resp => resp)
-        .then(resp => resp.json())
-        .then(response => {
-            if (response.Response === 'False') {
-                setError(response.Error);
-            }
-            else {
-                setData(response.Search);
-            }
+        if (query === "") {
+            initData();
+        } else {
+            fetch(`https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${query}`)
+            .then(resp => resp)
+            .then(resp => resp.json())
+            .then(response => {
+                if (response.results != null) {
+                    setData(response.results.filter(item => item.media_type === "movie"));
+                }
+                else {
+                    setError(response.status_message);
+                }
 
-            setLoading(false);
-        })
-        .catch(({message}) => {
-            setError(message);
-            setLoading(false);
-        })
+                setLoading(false);
+            })
+            .catch(({message}) => {
+                setError(message);
+                setLoading(false);
+            })
+        }
+    }, [query]);
 
-    }, [q]);
-
+    useEffect(() => {
+        initData();
+    }, []);
     
     return (
         <div className="App">
-            <Layout className="layout">
-                <Header>
-                    <div style={{ textAlign: 'center'}}>
-                        <TextTitle style={{color: '#ffffff', marginTop: '14px'}} level={3}>OMDB API + React</TextTitle>
-                    </div>
-                </Header>
-                <Content style={{ padding: '0 50px' }}>
-                    <div style={{ background: '#fff', padding: 24, minHeight: 280 }}>
-                        <SearchBox searchHandler={setQuery} />
-                        <br />
-                        
-                        <Row gutter={16} type="flex" justify="center">
+            <Box sx={{ flexGrow: 1 }}>
+                <AppBar position="static">
+                    <Toolbar>
+                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                            Movie Database
+                        </Typography>
+                    </Toolbar>
+                </AppBar>
+            </Box>
+            <Container style={{ padding: '24px', minHeight: 280 }}>
+                    <SearchBox searchHandler={searchHandler} />
+
+                    <Grid container>
                             { loading &&
                                 <Loader />
                             }
@@ -192,8 +249,7 @@ function App() {
                                     {...result} 
                                 />
                             ))}
-                        </Row>
-                    </div>
+                    </Grid>
                     <Modal
                         title='Detail'
                         centered
@@ -207,9 +263,15 @@ function App() {
                             (<Loader />) 
                         }
                     </Modal>
-                </Content>
-                <Footer style={{ textAlign: 'center' }}>OMDB Movies ©2019</Footer>
-            </Layout>
+            </Container>
+            <Box py={1} textAlign={{ xs: 'center', md: 'right' }}>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+              >
+                ©rhld16 2022 All rights reserved
+              </Typography>
+            </Box>
         </div>
     );
 }
