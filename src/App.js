@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { 
-    Row, 
-    Col, 
-    Card, 
-    Tag, 
-    Spin, 
-    Modal,
-    Alert
-} from 'antd';
-import 'antd/dist/antd.css';
-import { 
+    Alert,
     AppBar, 
     Box, 
+    Card, 
     CardActionArea, 
     CardContent, 
     CardMedia, 
     Chip, 
+    CircularProgress, 
     Container, 
+    Dialog, 
+    DialogContent, 
+    DialogTitle, 
     Grid, 
+    Stack, 
     TextField, 
     Toolbar, 
     Typography 
@@ -77,7 +74,7 @@ const ColCardBox = ({name, id, poster_path, vote_average, year, ShowDetail, Deta
                     <CardMedia
                         component="img"
                         height="300"
-                        image={poster_path === null ? 'https://placehold.it/300x450&text=Image+Not+Found' : "https://image.tmdb.org/t/p/w300" + poster_path}
+                        image={poster_path === null ? 'https://via.placeholder.com/300x450&text=Image+Not+Found' : "https://image.tmdb.org/t/p/w300" + poster_path}
                         alt={name}
                     />
                     <CardContent>
@@ -97,55 +94,34 @@ const MovieDetail = ({title, poster_path, vote_average, runtime, genres, overvie
         genres = genres.map(genre => genre.name).join(', ');
     }
     return (
-        // <Grid container spacing={2} columns={16}>
-        //     <Grid item xs={8}>
-        //         <img src={poster_path === null ? 'https://placehold.it/300x450&text=Image+Not+Found' : "https://image.tmdb.org/t/p/w300" + poster_path} alt={title} style={{width: '100%'}} />
-        //     </Grid>
-        //     <Grid item xs={8}>
-        //         {/* movie title with score on right side */}
-        //         <Typography variant="h5" gutterBottom>
-        //             {title}
-        //             <Chip label={vote_average} size="small" style={{marginLeft: '10px'}} />
-        //         </Typography>
-        //     </Grid>
-        // </Grid>
-        <Row>
-            <Col span={11}>
-                <img 
-                    src={poster_path === 'N/A' ? 'https://placehold.it/198x264&text=Image+Not+Found' : "https://image.tmdb.org/t/p/w300" + poster_path} 
-                    alt={title} 
-                />
-            </Col>
-            <Col span={13}>
-                <Row>
-                    <Col span={21}>
-                        <Typography variant="h5" component="h2">
+        <Grid container spacing={2} columns={24}>
+            <Grid item xs={9}>
+                <img src={poster_path === null ? 'https://placehold.it/300x450&text=Image+Not+Found' : "https://image.tmdb.org/t/p/w300" + poster_path} alt={title} />
+            </Grid>
+            <Grid item xs={15}>
+                <Grid item xs container direction="column" spacing={2}>
+                    <Grid item>
+                        <Typography variant="h5" gutterBottom>
                             {title}
+                            <Chip label={vote_average} size="small" style={{marginLeft: '10px'}} />
                         </Typography>
-                    </Col>
-                    <Col span={3} style={{textAlign:'right'}}>
-                        <Typography gutterBottom variant="h5" component="h2">
-                            {vote_average}
-                        </Typography>
-                    </Col>
-                </Row>
-                <Row style={{marginBottom: '20px'}}>
-                    <Col>
-                        <Tag>{runtime}</Tag> 
-                        <Tag>{genres}</Tag>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>{overview}</Col>
-                </Row>
-            </Col>
-        </Row>
+                        <Stack direction="row" spacing={1}>
+                            <Chip size="small" label={runtime} variant="outlined" />
+                            <Chip size="small" label={genres} variant="outlined" />
+                        </Stack>
+                    </Grid>
+                    <Grid item style={{ marginBottom: "50px" }}>
+                        {overview}
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
     )
 }
 
 const Loader = () => (
     <div style={{margin: '20px 0', textAlign: 'center'}}>
-        <Spin />
+        <CircularProgress />
     </div>
 )
 
@@ -229,15 +205,21 @@ function App() {
             <Container style={{ padding: '24px', minHeight: 50 }}>
                 <SearchBox searchHandler={searchHandler} />
             </Container>
-            <Container style={{ padding: '24px', minHeight: 280 }}>
-                    <Grid container>
+            <Container style={{ padding: '12px', minHeight: 280 }}>
+                    <Grid
+                        container
+                        spacing={2}
+                        justifyContent="space-around"
+                        alignItems="stretch"
+                        direction="row"
+                        >
                             { loading &&
                                 <Loader />
                             }
 
                             { error !== null &&
                                 <div style={{margin: '20px 0'}}>
-                                    <Alert message={error} type="error" />
+                                    <Alert severity="error">{error}</Alert>
                                 </div>
                             }
                             
@@ -251,19 +233,22 @@ function App() {
                                 />
                             ))}
                     </Grid>
-                    <Modal
-                        title='Detail'
-                        centered
-                        visible={activateModal}
-                        onCancel={() => setActivateModal(false)}
-                        footer={null}
-                        width={800}
-                        >
-                        { detailRequest === false ?
-                            (<MovieDetail {...detail} />) :
-                            (<Loader />) 
-                        }
-                    </Modal>
+                    <Dialog
+                        onClose={() => setActivateModal(false)}
+                        aria-labelledby="customized-dialog-title"
+                        open={activateModal}
+                        maxWidth='md'
+                    >
+                        <DialogTitle id="customized-dialog-title" onClose={() => setActivateModal(false)}>
+                            Detail
+                        </DialogTitle>
+                        <DialogContent dividers>
+                            { detailRequest === false ?
+                                (<MovieDetail {...detail} />) :
+                                (<Loader />) 
+                            }
+                        </DialogContent>
+                    </Dialog>
             </Container>
             <Box py={1} textAlign={{ xs: 'center', md: 'right' }}>
               <Typography
